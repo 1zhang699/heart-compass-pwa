@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ff6f61" />
+  <meta name="description" content="回答 6 个小问题，发现你的恋爱模式。" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <title>心动指南针｜恋爱测试</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #32233a;
+      --muted: #786879;
+      --paper: #fff9f2;
+      --card: #ffffff;
+      --coral: #ff6f61;
+      --coral-dark: #de4d4b;
+      --pink: #ffc3ca;
+      --plum: #6f3d6c;
+      --yellow: #ffd76a;
+      --line: #eedee0;
+      --shadow: 0 22px 60px rgba(97, 44, 70, .14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-height: 100%; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .game-shell {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px 18px;
+    }
+
+    .game-shell::before,
+    .game-shell::after {
+      content: "";
+      position: fixed;
+      z-index: -2;
+      width: 42vw;
+      height: 42vw;
+      border-radius: 50%;
+      opacity: .55;
+      filter: blur(2px);
+    }
+
+    .game-shell::before { left: -18vw; top: -16vw; background: var(--pink); }
+    .game-shell::after { right: -20vw; bottom: -18vw; background: var(--yellow); }
+
+    .heart {
+      position: fixed;
+      z-index: -1;
+      color: var(--coral);
+      opacity: .17;
+      font-size: clamp(38px, 6vw, 76px);
+      animation: float 5s ease-in-out infinite;
+      user-select: none;
+    }
+
+    .heart.one { top: 10%; left: 7%; transform: rotate(-16deg); }
+    .heart.two { right: 7%; top: 14%; animation-delay: -2s; transform: rotate(18deg); }
+    .heart.three { left: 11%; bottom: 10%; animation-delay: -3.5s; transform: rotate(9deg); }
+
+    @keyframes float {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -12px; }
+    }
+
+    .game-card {
+      width: min(100%, 720px);
+      min-height: 560px;
+      background: rgba(255, 255, 255, .92);
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 20px 28px 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    .brand-mark {
+      width: 32px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--coral);
+      color: white;
+      rotate: -5deg;
+      box-shadow: 0 7px 16px rgba(255,111,97,.28);
+    }
+
+    .step-label { color: var(--muted); font-size: .9rem; font-weight: 700; }
+
+    .progress-track {
+      height: 6px;
+      margin: 0 28px;
+      border-radius: 999px;
+      background: #f3e7e7;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--coral);
+      transition: width .45s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .screen {
+      display: none;
+      padding: 38px 58px 50px;
+      min-height: 476px;
+      animation: enter .38s ease both;
+    }
+
+    .screen.active { display: flex; flex-direction: column; }
+
+    @keyframes enter {
+      from { opacity: 0; translate: 0 10px; }
+      to { opacity: 1; translate: 0 0; }
+    }
+
+    .eyebrow {
+      width: fit-content;
+      margin: 0 0 16px;
+      padding: 7px 12px;
+      border: 1px solid #f5c5c4;
+      border-radius: 999px;
+      color: var(--coral-dark);
+      background: #fff3f1;
+      font-size: .83rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    h1, h2, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 18px;
+      font-size: clamp(2.55rem, 7vw, 4.5rem);
+      line-height: .98;
+      letter-spacing: -.07em;
+    }
+
+    h1 span { color: var(--coral); }
+
+    .lead {
+      max-width: 540px;
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.8;
+    }
+
+    .intro-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .intro-meta span {
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: #f7f2f4;
+      color: #665565;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .primary-btn {
+      align-self: flex-start;
+      min-width: 158px;
+      border: 0;
+      border-radius: 16px;
+      padding: 15px 23px;
+      background: var(--coral);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(255,111,97,.26);
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .primary-btn:hover { transform: translateY(-2px); background: var(--coral-dark); box-shadow: 0 14px 24px rgba(255,111,97,.31); }
+    .primary-btn:active { transform: translateY(0); }
+    .primary-btn:focus-visible, .answer:focus-visible { outline: 4px solid rgba(111,61,108,.2); outline-offset: 3px; }
+
+    .intro-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .install-btn {
+      border: 1px solid var(--plum);
+      border-radius: 16px;
+      padding: 14px 20px;
+      background: white;
+      color: var(--plum);
+      font-weight: 800;
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .install-btn:hover { background: var(--plum); color: white; transform: translateY(-2px); }
+    .install-btn:focus-visible { outline: 4px solid rgba(111,61,108,.2); outline-offset: 3px; }
+
+    .question-kicker {
+      margin-bottom: 10px;
+      color: var(--coral-dark);
+      font-size: .88rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .question-title {
+      margin-bottom: 26px;
+      font-size: clamp(1.55rem, 4vw, 2.25rem);
+      line-height: 1.35;
+      letter-spacing: -.025em;
+    }
+
+    .answers { display: grid; gap: 12px; }
+
+    .answer {
+      position: relative;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 14px 16px;
+      background: white;
+      color: var(--ink);
+      text-align: left;
+      line-height: 1.45;
+      cursor: pointer;
+      transition: border-color .18s ease, translate .18s ease, background .18s ease;
+    }
+
+    .answer:hover { border-color: var(--coral); translate: 4px 0; background: #fffafa; }
+    .answer:disabled { cursor: default; }
+    .answer.selected { color: white; background: var(--plum); border-color: var(--plum); translate: 4px 0; }
+
+    .answer-letter {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: #f8eeee;
+      color: var(--coral-dark);
+      font-weight: 900;
+    }
+
+    .answer.selected .answer-letter { background: rgba(255,255,255,.18); color: white; }
+
+    .result-screen { padding-top: 30px; text-align: center; align-items: center; }
+
+    .result-stamp {
+      width: 92px;
+      height: 92px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 15px;
+      border-radius: 30px;
+      background: var(--pink);
+      font-size: 2.7rem;
+      rotate: -4deg;
+      box-shadow: 0 12px 28px rgba(111,61,108,.12);
+    }
+
+    .result-label { margin-bottom: 7px; color: var(--muted); font-size: .9rem; font-weight: 800; letter-spacing: .1em; }
+
+    .result-title {
+      margin-bottom: 11px;
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      line-height: 1.1;
+      color: var(--plum);
+      letter-spacing: -.04em;
+    }
+
+    .result-tagline { margin-bottom: 22px; color: var(--coral-dark); font-weight: 800; }
+
+    .meter-wrap {
+      width: min(100%, 440px);
+      margin-bottom: 22px;
+      padding: 15px 18px;
+      border-radius: 16px;
+      background: #faf3f4;
+    }
+
+    .meter-head { display: flex; justify-content: space-between; margin-bottom: 9px; font-size: .88rem; font-weight: 800; }
+    .meter { height: 10px; border-radius: 999px; background: white; overflow: hidden; }
+    .meter-fill { width: 0; height: 100%; border-radius: inherit; background: var(--coral); transition: width .9s cubic-bezier(.2,.8,.2,1) .15s; }
+
+    .result-copy {
+      max-width: 540px;
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+
+    .result-tip {
+      max-width: 540px;
+      margin-bottom: 25px;
+      padding: 13px 16px;
+      border-left: 4px solid var(--yellow);
+      border-radius: 7px 13px 13px 7px;
+      background: #fff9e8;
+      color: #665328;
+      text-align: left;
+      line-height: 1.6;
+    }
+
+    .result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+    .secondary-btn {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 20px;
+      background: white;
+      color: var(--ink);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .secondary-btn:hover { border-color: var(--plum); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 5;
+      padding: 11px 17px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: white;
+      font-size: .9rem;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      translate: -50% 12px;
+      transition: opacity .2s ease, translate .2s ease;
+    }
+
+    .toast.show { opacity: 1; translate: -50% 0; }
+
+    .footer-note { margin: 18px 0 0; color: #9b8d98; font-size: .78rem; }
+
+    @media (max-width: 620px) {
+      .game-shell { padding: 0; place-items: stretch; }
+      .game-card { min-height: 100vh; border: 0; border-radius: 0; box-shadow: none; }
+      .topbar { padding: 19px 20px 13px; }
+      .progress-track { margin: 0 20px; }
+      .screen { min-height: calc(100vh - 82px); padding: 34px 22px 42px; }
+      .intro-screen { justify-content: center; }
+      .question-screen { padding-top: 46px; }
+      .result-screen { padding-top: 25px; justify-content: center; }
+      .heart { display: none; }
+      .answer { grid-template-columns: 38px 1fr; padding: 13px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-shell">
+    <span class="heart one" aria-hidden="true">♥</span>
+    <span class="heart two" aria-hidden="true">♥</span>
+    <span class="heart three" aria-hidden="true">♥</span>
+
+    <section class="game-card" aria-live="polite">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">♥</span><span>心动指南针</span></div>
+        <div class="step-label" id="stepLabel">恋爱模式小测验</div>
+      </header>
+      <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+
+      <div class="screen intro-screen active" id="introScreen">
+        <p class="eyebrow">LOVE MODE TEST</p>
+        <h1>你的心，<br />偏向哪种<span>爱</span>？</h1>
+        <p class="lead">6 个没有标准答案的小问题，测出你在感情里的隐藏模式。凭第一直觉选，结果会更像你。</p>
+        <div class="intro-meta"><span>约 1 分钟</span><span>无需登录</span><span>答案仅在本机计算</span></div>
+        <div class="intro-actions">
+          <button class="primary-btn" id="startBtn" type="button">开始测试</button>
+          <button class="install-btn" id="installBtn" type="button">安装到电脑</button>
+        </div>
+      </div>
+
+      <div class="screen question-screen" id="questionScreen">
+        <p class="question-kicker" id="questionKicker">第一题</p>
+        <h2 class="question-title" id="questionTitle"></h2>
+        <div class="answers" id="answers"></div>
+      </div>
+
+      <div class="screen result-screen" id="resultScreen">
+        <div class="result-stamp" id="resultEmoji">💗</div>
+        <p class="result-label">你的恋爱模式是</p>
+        <h2 class="result-title" id="resultTitle"></h2>
+        <p class="result-tagline" id="resultTagline"></p>
+        <div class="meter-wrap">
+          <div class="meter-head"><span>心动浓度</span><span id="meterValue">0%</span></div>
+          <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+        </div>
+        <p class="result-copy" id="resultCopy"></p>
+        <p class="result-tip" id="resultTip"></p>
+        <div class="result-actions">
+          <button class="primary-btn" id="restartBtn" type="button">再测一次</button>
+          <button class="secondary-btn" id="copyBtn" type="button">复制结果</button>
+        </div>
+        <p class="footer-note">趣味测试仅供娱乐，真正的关系没有标准模板。</p>
+      </div>
+    </section>
+    <div class="toast" id="toast" role="status">结果已复制</div>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        text: "喜欢的人半天没回消息，你的第一反应是？",
+        answers: [
+          ["先忙自己的，等对方有空", "steady", 2],
+          ["脑内上演十集连续剧", "romantic", 4],
+          ["发个有趣表情包试探一下", "spark", 3],
+          ["担心对方是不是遇到麻烦", "warm", 3]
+        ]
+      },
+      {
+        text: "理想中的约会，更像下面哪一幕？",
+        answers: [
+          ["熟悉的小店，慢慢聊一整晚", "steady", 2],
+          ["突然出发，去没去过的地方", "spark", 4],
+          ["精心准备的烛光与小惊喜", "romantic", 4],
+          ["一起买菜做饭，窝在家里", "warm", 2]
+        ]
+      },
+      {
+        text: "发生小争执时，你通常会怎么做？",
+        answers: [
+          ["冷静一下，再把问题说清楚", "steady", 1],
+          ["先抱一下，气消了再谈", "warm", 2],
+          ["情绪来得快，和好也快", "spark", 4],
+          ["写一大段话表达真实感受", "romantic", 3]
+        ]
+      },
+      {
+        text: "对方送你的哪种礼物最戳心？",
+        answers: [
+          ["记住很久前提过的小愿望", "warm", 3],
+          ["一封认真写下的情书", "romantic", 4],
+          ["一起体验新鲜事的门票", "spark", 4],
+          ["正好能解决最近困扰的东西", "steady", 2]
+        ]
+      },
+      {
+        text: "在一段关系里，你最看重什么？",
+        answers: [
+          ["稳定、坦诚和彼此信任", "steady", 1],
+          ["被理解，也能照顾好彼此", "warm", 2],
+          ["永远保留新鲜感和吸引力", "spark", 4],
+          ["灵魂共鸣与浪漫仪式感", "romantic", 4]
+        ]
+      },
+      {
+        text: "如果把恋爱比作一次旅行，你希望它是？",
+        answers: [
+          ["有路线也有余地的长途同行", "steady", 2],
+          ["随时改变目的地的冒险", "spark", 4],
+          ["沿途收集很多温柔的日常", "warm", 2],
+          ["像电影一样值得反复回味", "romantic", 4]
+        ]
+      }
+    ];
+
+    const results = {
+      steady: {
+        title: "安稳同频派", emoji: "🧭", tagline: "爱是确定，也是长久的并肩",
+        copy: "你不太迷恋忽冷忽热的拉扯，更相信真诚、边界与持续的行动。喜欢一个人时，你会把对方认真放进未来，也愿意用沟通代替猜测。你的爱也许不喧闹，却很让人安心。",
+        tip: "心动提醒：偶尔把理性调成静音，主动制造一点意外，会让稳定的关系持续发光。"
+      },
+      warm: {
+        title: "温柔守护派", emoji: "☕", tagline: "你把喜欢藏进每一个小细节",
+        copy: "你很会感受对方的情绪，也习惯用照顾和陪伴表达爱。你记得那些微小偏好，是关系里可靠的柔软力量。被你喜欢的人，常常能感受到一种被稳稳接住的幸福。",
+        tip: "心动提醒：照顾别人之前，也要说出自己的需要。被爱不必靠懂事来交换。"
+      },
+      spark: {
+        title: "心跳冒险派", emoji: "🎈", tagline: "喜欢就要让每一天都有新剧情",
+        copy: "你享受恋爱里的火花、好奇与共同冒险。喜欢一个人时，你会带着对方打开生活的新地图。你的能量让关系充满生机，也让普通日子变得值得期待。",
+        tip: "心动提醒：新鲜感很迷人，稳定回应也同样浪漫。偶尔慢下来，才能看见更深的默契。"
+      },
+      romantic: {
+        title: "浪漫共鸣派", emoji: "🌙", tagline: "你想要的不只是喜欢，还有懂得",
+        copy: "你对爱有细腻而丰富的想象，重视精神共鸣，也珍惜仪式感。你愿意全心投入，擅长把感受说得动人。对你而言，恋爱是两颗心真正看见彼此。",
+        tip: "心动提醒：别让想象跑在关系前面。给真实的人留一点不完美的空间，浪漫会更长久。"
+      }
+    };
+
+    const introScreen = document.querySelector("#introScreen");
+    const questionScreen = document.querySelector("#questionScreen");
+    const resultScreen = document.querySelector("#resultScreen");
+    const progressBar = document.querySelector("#progressBar");
+    const stepLabel = document.querySelector("#stepLabel");
+    const questionKicker = document.querySelector("#questionKicker");
+    const questionTitle = document.querySelector("#questionTitle");
+    const answersBox = document.querySelector("#answers");
+    let current = 0;
+    let scores = {};
+    let energy = 0;
+    let lastResult = null;
+
+    const chineseSteps = ["第一题", "第二题", "第三题", "第四题", "第五题", "最后一题"];
+
+    function showScreen(target) {
+      [introScreen, questionScreen, resultScreen].forEach(screen => screen.classList.remove("active"));
+      target.classList.add("active");
+    }
+
+    function startGame() {
+      current = 0;
+      scores = { steady: 0, warm: 0, spark: 0, romantic: 0 };
+      energy = 0;
+      showScreen(questionScreen);
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const question = questions[current];
+      const progress = (current / questions.length) * 100;
+      progressBar.style.width = progress + "%";
+      stepLabel.textContent = `${current + 1} / ${questions.length}`;
+      questionKicker.textContent = chineseSteps[current];
+      questionTitle.textContent = question.text;
+      answersBox.innerHTML = "";
+
+      question.answers.forEach((answer, index) => {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.type = "button";
+        button.innerHTML = `<span class="answer-letter">${String.fromCharCode(65 + index)}</span><span>${answer[0]}</span>`;
+        button.addEventListener("click", () => chooseAnswer(button, answer));
+        answersBox.appendChild(button);
+      });
+    }
+
+    function chooseAnswer(button, answer) {
+      answersBox.querySelectorAll("button").forEach(item => item.disabled = true);
+      button.classList.add("selected");
+      scores[answer[1]] += 1;
+      energy += answer[2];
+
+      window.setTimeout(() => {
+        current += 1;
+        if (current < questions.length) {
+          questionScreen.classList.remove("active");
+          void questionScreen.offsetWidth;
+          questionScreen.classList.add("active");
+          renderQuestion();
+        } else {
+          showResult();
+        }
+      }, 380);
+    }
+
+    function showResult() {
+      const typeOrder = ["steady", "warm", "spark", "romantic"];
+      const maxScore = Math.max(...Object.values(scores));
+      const tied = typeOrder.filter(type => scores[type] === maxScore);
+      const type = tied[(energy + tied.length) % tied.length];
+      const result = results[type];
+      const percentage = Math.min(96, 68 + energy);
+      lastResult = { ...result, percentage };
+
+      document.querySelector("#resultEmoji").textContent = result.emoji;
+      document.querySelector("#resultTitle").textContent = result.title;
+      document.querySelector("#resultTagline").textContent = result.tagline;
+      document.querySelector("#resultCopy").textContent = result.copy;
+      document.querySelector("#resultTip").textContent = result.tip;
+      document.querySelector("#meterValue").textContent = percentage + "%";
+      document.querySelector("#meterFill").style.width = "0";
+      progressBar.style.width = "100%";
+      stepLabel.textContent = "测试完成";
+      showScreen(resultScreen);
+      requestAnimationFrame(() => document.querySelector("#meterFill").style.width = percentage + "%");
+    }
+
+    function showToast(message) {
+      const toast = document.querySelector("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    async function copyResult() {
+      if (!lastResult) return;
+      const text = `我的恋爱模式是「${lastResult.title}」：${lastResult.tagline}，心动浓度 ${lastResult.percentage}%。——心动指南针`;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_) {
+        const area = document.createElement("textarea");
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+      showToast("结果已复制");
+    }
+
+    let deferredInstallPrompt = null;
+    const installBtn = document.querySelector("#installBtn");
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+    if (isStandalone) installBtn.hidden = true;
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installBtn.hidden = false;
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) {
+        showToast("请用 Edge 打开：右上角 ··· → 应用 → 安装此站点");
+        return;
+      }
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+    });
+
+    window.addEventListener("appinstalled", () => {
+      installBtn.hidden = true;
+      showToast("安装成功，可从桌面打开");
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+
+    document.querySelector("#startBtn").addEventListener("click", startGame);
+    document.querySelector("#restartBtn").addEventListener("click", startGame);
+    document.querySelector("#copyBtn").addEventListener("click", copyResult);
+  </script>
+</body>
+</html>
